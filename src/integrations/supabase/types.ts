@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      focus_sessions: {
+        Row: {
+          completed_at: string
+          date: string
+          duration: number
+          id: string
+          session_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          date?: string
+          duration: number
+          id?: string
+          session_type?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          date?: string
+          duration?: number
+          id?: string
+          session_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          auto_start_breaks: boolean
+          auto_start_focus: boolean
+          break_duration: number
+          created_at: string
+          focus_duration: number
+          id: string
+          long_break_duration: number
+          notifications_enabled: boolean
+          sessions_until_long_break: number
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_start_breaks?: boolean
+          auto_start_focus?: boolean
+          break_duration?: number
+          created_at?: string
+          focus_duration?: number
+          id?: string
+          long_break_duration?: number
+          notifications_enabled?: boolean
+          sessions_until_long_break?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_start_breaks?: boolean
+          auto_start_focus?: boolean
+          break_duration?: number
+          created_at?: string
+          focus_duration?: number
+          id?: string
+          long_break_duration?: number
+          notifications_enabled?: boolean
+          sessions_until_long_break?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          created_at: string
+          id: string
+          sessions_completed: number
+          tier: string
+          total_focus_time: number
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sessions_completed?: number
+          tier?: string
+          total_focus_time?: number
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sessions_completed?: number
+          tier?: string
+          total_focus_time?: number
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
