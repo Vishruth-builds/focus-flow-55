@@ -70,6 +70,13 @@ export default {
           break: "hsl(var(--timer-break))",
           "long-break": "hsl(var(--timer-long-break))",
         },
+        tier: {
+          rookie: "hsl(var(--tier-rookie))",
+          amateur: "hsl(var(--tier-amateur))",
+          pro: "hsl(var(--tier-pro))",
+          expert: "hsl(var(--tier-expert))",
+          master: "hsl(var(--tier-master))",
+        },
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
