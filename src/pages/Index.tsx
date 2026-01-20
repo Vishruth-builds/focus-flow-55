@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar, Section } from '@/components/Sidebar';
@@ -8,6 +8,9 @@ import { StatsPanel } from '@/components/StatsPanel';
 import { CalendarView } from '@/components/CalendarView';
 import { Leaderboard } from '@/components/Leaderboard';
 import { BackgroundOverlay } from '@/components/BackgroundOverlay';
+import { ProfileEditModal } from '@/components/ProfileEditModal';
+import { ProductivityReportModal } from '@/components/ProductivityReport';
+import { SectionWrapper } from '@/components/SectionWrapper';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useTheme } from '@/hooks/useTheme';
 import { useStats } from '@/hooks/useStats';
@@ -18,17 +21,19 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState<Section>('timer');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { user, profile, loading: authLoading, signOut, updateProfile } = useAuth();
   const { currentBackground, isLoaded } = useBackground();
   const navigate = useNavigate();
   
   const sectionRefs = {
-    timer: useRef<HTMLDivElement>(null),
-    tasks: useRef<HTMLDivElement>(null),
-    stats: useRef<HTMLDivElement>(null),
-    calendar: useRef<HTMLDivElement>(null),
-    leaderboard: useRef<HTMLDivElement>(null),
+    timer: useRef<HTMLElement>(null),
+    tasks: useRef<HTMLElement>(null),
+    stats: useRef<HTMLElement>(null),
+    calendar: useRef<HTMLElement>(null),
+    leaderboard: useRef<HTMLElement>(null),
   };
 
   const {
@@ -68,6 +73,41 @@ const Index = () => {
     loading: leaderboardLoading,
     updateUserStats,
   } = useLeaderboard(user?.id);
+
+  // Scroll-based section tracking
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = Object.entries(sectionRefs) as [Section, React.RefObject<HTMLElement>][];
+      let currentSection: Section = 'timer';
+      
+      for (const [id, ref] of sections) {
+        if (ref.current) {
+          const rect = ref.current.getBoundingClientRect();
+          // Check if section is in the viewport (with some offset)
+          if (rect.top <= 200 && rect.bottom >= 200) {
+            currentSection = id;
+          }
+        }
+      }
+      
+      if (currentSection !== activeSection) {
+        setActiveSection(currentSection);
+      }
+    };
+
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      if (mainContent) {
+        mainContent.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [activeSection]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -139,13 +179,13 @@ const Index = () => {
     document.title = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} - ${modeLabel} | Focuux`;
   }, [timeLeft, mode]);
 
-  const handleSectionChange = (section: Section) => {
+  const handleSectionChange = useCallback((section: Section) => {
     setActiveSection(section);
     sectionRefs[section].current?.scrollIntoView({ 
       behavior: 'smooth',
       block: 'start',
     });
-  };
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -173,107 +213,72 @@ const Index = () => {
         sessionsCompleted={sessionsCompleted}
         profile={profile}
         onSignOut={handleSignOut}
+        onEditProfile={() => setShowProfileModal(true)}
+        onOpenReport={() => setShowReportModal(true)}
       />
 
-      <main className="main-content min-h-screen py-8 px-4 lg:px-8 perspective-1000">
-        <div className="max-w-4xl mx-auto space-y-16 scroll-smooth-3d">
+      <main className="main-content min-h-screen py-8 px-4 lg:px-8" style={{ perspective: '1200px' }}>
+        <div className="max-w-4xl mx-auto space-y-24" style={{ transformStyle: 'preserve-3d' }}>
           {/* Timer Section */}
-          <section ref={sectionRefs.timer} id="timer" className="pt-4">
-            <motion.div
-              initial={{ opacity: 0, rotateX: -10 }}
-              whileInView={{ opacity: 1, rotateX: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <Timer
-                mode={mode}
-                timeLeft={timeLeft}
-                isRunning={isRunning}
-                progress={progress}
-                settings={settings}
-                onStart={start}
-                onPause={pause}
-                onReset={reset}
-                onSkip={skip}
-                onSwitchMode={switchMode}
-                onUpdateSettings={updateSettings}
-              />
-            </motion.div>
-          </section>
+          <SectionWrapper ref={sectionRefs.timer} id="timer" isCard={false}>
+            <Timer
+              mode={mode}
+              timeLeft={timeLeft}
+              isRunning={isRunning}
+              progress={progress}
+              settings={settings}
+              onStart={start}
+              onPause={pause}
+              onReset={reset}
+              onSkip={skip}
+              onSwitchMode={switchMode}
+              onUpdateSettings={updateSettings}
+            />
+          </SectionWrapper>
 
           {/* Tasks Section */}
-          <section ref={sectionRefs.tasks} id="tasks">
-            <motion.div
-              initial={{ opacity: 0, rotateX: -10 }}
-              whileInView={{ opacity: 1, rotateX: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="section-card"
-            >
-              <TaskList
-                tasks={tasks}
-                activeTaskId={activeTaskId}
-                onSelectTask={setActiveTaskId}
-                onAddTask={addTask}
-                onToggleComplete={toggleTaskComplete}
-                onDeleteTask={deleteTask}
-                formatTime={formatTime}
-              />
-            </motion.div>
-          </section>
+          <SectionWrapper ref={sectionRefs.tasks} id="tasks">
+            <TaskList
+              tasks={tasks}
+              activeTaskId={activeTaskId}
+              onSelectTask={setActiveTaskId}
+              onAddTask={addTask}
+              onToggleComplete={toggleTaskComplete}
+              onDeleteTask={deleteTask}
+              onUpdateTask={updateTask}
+              formatTime={formatTime}
+            />
+          </SectionWrapper>
 
           {/* Stats Section */}
-          <section ref={sectionRefs.stats} id="stats">
-            <motion.div
-              initial={{ opacity: 0, rotateX: -10 }}
-              whileInView={{ opacity: 1, rotateX: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="section-card"
-            >
-              <StatsPanel
-                todayStats={todayStats}
-                weeklyStats={weeklyStats}
-                last7Days={last7Days}
-                averageDailyFocusTime={averageDailyFocusTime}
-                formatTime={formatTime}
-              />
-            </motion.div>
-          </section>
+          <SectionWrapper ref={sectionRefs.stats} id="stats">
+            <StatsPanel
+              todayStats={todayStats}
+              weeklyStats={weeklyStats}
+              last7Days={last7Days}
+              averageDailyFocusTime={averageDailyFocusTime}
+              formatTime={formatTime}
+            />
+          </SectionWrapper>
 
           {/* Calendar Section */}
-          <section ref={sectionRefs.calendar} id="calendar">
-            <motion.div
-              initial={{ opacity: 0, rotateX: -10 }}
-              whileInView={{ opacity: 1, rotateX: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="section-card"
-            >
-              <CalendarView
-                sessions={sessions}
-                tasks={tasks}
-                formatTime={formatTime}
-              />
-            </motion.div>
-          </section>
+          <SectionWrapper ref={sectionRefs.calendar} id="calendar">
+            <CalendarView
+              sessions={sessions}
+              tasks={tasks}
+              formatTime={formatTime}
+            />
+          </SectionWrapper>
 
           {/* Leaderboard Section */}
-          <section ref={sectionRefs.leaderboard} id="leaderboard" className="pb-16">
-            <motion.div
-              initial={{ opacity: 0, rotateX: -10 }}
-              whileInView={{ opacity: 1, rotateX: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <Leaderboard
-                entries={leaderboard}
-                currentUserId={user?.id}
-                loading={leaderboardLoading}
-                formatTime={formatTime}
-              />
-            </motion.div>
-          </section>
+          <SectionWrapper ref={sectionRefs.leaderboard} id="leaderboard" className="pb-16" isCard={false}>
+            <Leaderboard
+              entries={leaderboard}
+              currentUserId={user?.id}
+              loading={leaderboardLoading}
+              formatTime={formatTime}
+            />
+          </SectionWrapper>
         </div>
       </main>
 
@@ -296,6 +301,23 @@ const Index = () => {
         <span className="px-2 py-1 bg-secondary rounded">Space</span> start/pause
         <span className="ml-2 px-2 py-1 bg-secondary rounded">1-5</span> navigate
       </div>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        profile={profile}
+        onUpdate={updateProfile}
+      />
+
+      {/* Productivity Report Modal */}
+      <ProductivityReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        tasks={tasks}
+        sessions={sessions}
+        formatTime={formatTime}
+      />
     </div>
   );
 };
