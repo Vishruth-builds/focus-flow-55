@@ -9,6 +9,7 @@ export interface Task {
   totalTimeSpent: number; // in seconds
   createdAt: string;
   scheduledDate?: string;
+  deadline?: string; // ISO date string for when task should be completed
   notes?: string;
 }
 
@@ -45,4 +46,17 @@ export interface WeeklyStats {
   sessionsCompleted: number;
   tasksCompleted: number;
   dailyBreakdown: DailyStats[];
+}
+
+export interface ProductivityReport {
+  period: 'daily' | 'weekly';
+  date: string;
+  totalFocusTime: number;
+  sessionsCompleted: number;
+  tasksScheduled: number;
+  tasksCompleted: number;
+  goalsMet: boolean;
+  completionRate: number;
+  feedback: string;
+  suggestions: string[];
 }

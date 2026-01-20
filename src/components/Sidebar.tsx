@@ -9,7 +9,9 @@ import {
   Sun, 
   LogOut,
   User,
-  Sparkles
+  Sparkles,
+  Settings,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Profile } from '@/hooks/useAuth';
@@ -25,6 +27,8 @@ interface SidebarProps {
   sessionsCompleted: number;
   profile: Profile | null;
   onSignOut: () => void;
+  onEditProfile: () => void;
+  onOpenReport: () => void;
 }
 
 const navItems = [
@@ -43,6 +47,8 @@ export function Sidebar({
   sessionsCompleted,
   profile,
   onSignOut,
+  onEditProfile,
+  onOpenReport,
 }: SidebarProps) {
   return (
     <aside className="sidebar-nav flex flex-col">
@@ -74,7 +80,7 @@ export function Sidebar({
             whileTap={{ scale: 0.98 }}
             onClick={() => onSectionChange(item.id)}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all',
+              'w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all relative',
               activeSection === item.id
                 ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg'
                 : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
@@ -82,12 +88,30 @@ export function Sidebar({
           >
             <item.icon size={20} />
             <span className="hidden lg:block">{item.label}</span>
+            
+            {/* Active indicator */}
+            {activeSection === item.id && (
+              <motion.div
+                layoutId="activeSection"
+                className="absolute left-0 w-1 h-8 bg-primary rounded-r-full"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
           </motion.button>
         ))}
       </nav>
 
       {/* User Profile & Actions */}
       <div className="p-3 lg:p-4 border-t border-sidebar-border space-y-2">
+        {/* Weekly Report */}
+        <button
+          onClick={onOpenReport}
+          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all"
+        >
+          <FileText size={20} />
+          <span className="hidden lg:block">Weekly Report</span>
+        </button>
+
         {/* Theme Toggle */}
         <button
           onClick={onToggleTheme}
@@ -102,17 +126,23 @@ export function Sidebar({
         {/* User Profile */}
         {profile && (
           <>
-            <div className="flex items-center gap-3 px-3 py-2">
-              <Avatar className="w-8 h-8">
+            <button
+              onClick={onEditProfile}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-sidebar-accent transition-all group"
+            >
+              <Avatar className="w-8 h-8 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
                 <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="bg-primary/20 text-primary text-xs">
                   {profile.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden lg:block text-sm font-medium text-sidebar-foreground truncate">
-                {profile.username}
-              </span>
-            </div>
+              <div className="hidden lg:flex items-center gap-2 flex-1">
+                <span className="text-sm font-medium text-sidebar-foreground truncate">
+                  {profile.username}
+                </span>
+                <Settings size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
             
             <button
               onClick={onSignOut}
