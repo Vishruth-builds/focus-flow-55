@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 const BACKGROUNDS = [
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80', // Snowy mountains
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80', // Forest lake
-  'https://images.unsplash.com/photo-1500964757637-c85e8a162699?w=1920&q=80', // Sunset hills
-  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', // Foggy forest
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80', // Mountain peaks
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80', // Nature landscape
-  'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80', // Waterfall
-  'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80', // Lake reflection
+  'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=1920&q=80', // Abstract painting
+  'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1920&q=80', // Monet style water lilies
+  'https://images.unsplash.com/photo-1549490349-8643362247b5?w=1920&q=80', // Abstract art blue
+  'https://images.unsplash.com/photo-1518173946687-a4c036bc4f54?w=1920&q=80', // Dreamy clouds
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80', // Serene lake
+  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', // Foggy mountains
+  'https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=1920&q=80', // Starry sky
+  'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1920&q=80', // Aurora borealis
 ];
 
 const STORAGE_KEY = 'focuux_background';

@@ -80,20 +80,23 @@ export function Sidebar({
             whileTap={{ scale: 0.98 }}
             onClick={() => onSectionChange(item.id)}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all relative',
+              'w-full flex items-center gap-3 px-4 py-4 rounded-xl font-medium transition-all relative overflow-hidden',
               activeSection === item.id
-                ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg'
-                : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
+                ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/30 scale-105'
+                : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm'
             )}
           >
-            <item.icon size={20} />
-            <span className="hidden lg:block">{item.label}</span>
+            <item.icon size={activeSection === item.id ? 24 : 20} className="transition-all" />
+            <span className={cn(
+              "hidden lg:block transition-all",
+              activeSection === item.id ? "text-base font-semibold" : "text-sm"
+            )}>{item.label}</span>
             
-            {/* Active indicator */}
+            {/* Active glow effect */}
             {activeSection === item.id && (
               <motion.div
-                layoutId="activeSection"
-                className="absolute left-0 w-1 h-8 bg-primary rounded-r-full"
+                layoutId="activeGlow"
+                className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl -z-10"
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}

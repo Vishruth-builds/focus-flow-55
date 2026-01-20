@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, User, Loader2 } from 'lucide-react';
+import { X, Camera, User, Loader2, ArrowLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,17 +22,22 @@ export function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: Profile
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username);
+      setAvatarUrl(profile.avatar_url || '');
+    }
+  }, [profile]);
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image must be less than 2MB');
       return;
@@ -89,44 +94,49 @@ export function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: Profile
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-background"
+        >
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
           
-          {/* Modal */}
+          {/* Content */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="relative h-full flex flex-col"
           >
-            <div className="glass-card p-6 rounded-2xl mx-4">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-foreground">Edit Profile</h2>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-secondary transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+            {/* Header */}
+            <div className="flex items-center gap-4 p-6 border-b border-border">
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <ArrowLeft size={24} />
+              </button>
+              <h1 className="text-2xl font-bold text-foreground">Edit Profile</h1>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Form */}
+            <div className="flex-1 flex items-center justify-center p-6">
+              <form onSubmit={handleSubmit} className="w-full max-w-md space-y-8">
                 {/* Avatar */}
-                <div className="flex flex-col items-center gap-4">
+                <motion.div 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex flex-col items-center gap-4"
+                >
                   <div className="relative group">
-                    <Avatar className="w-24 h-24 ring-4 ring-primary/20">
+                    <Avatar className="w-32 h-32 ring-4 ring-primary/20 shadow-2xl">
                       <AvatarImage src={avatarUrl || undefined} />
-                      <AvatarFallback className="bg-primary/20 text-primary text-2xl">
-                        {username.slice(0, 2).toUpperCase() || <User size={32} />}
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-3xl">
+                        {username.slice(0, 2).toUpperCase() || <User size={48} />}
                       </AvatarFallback>
                     </Avatar>
                     
@@ -137,9 +147,9 @@ export function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: Profile
                       className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       {isUploading ? (
-                        <Loader2 size={24} className="text-white animate-spin" />
+                        <Loader2 size={32} className="text-white animate-spin" />
                       ) : (
-                        <Camera size={24} className="text-white" />
+                        <Camera size={32} className="text-white" />
                       )}
                     </button>
                     
@@ -151,45 +161,55 @@ export function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: Profile
                       className="hidden"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click to change avatar</p>
-                </div>
+                  <p className="text-sm text-muted-foreground">Click to change avatar</p>
+                </motion.div>
 
                 {/* Username */}
-                <div className="space-y-2">
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-3"
+                >
                   <label className="text-sm font-medium text-foreground">Username</label>
                   <Input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
-                    className="bg-secondary/50"
+                    className="h-14 text-lg bg-secondary/50 border-border/50 focus:border-primary"
                   />
-                </div>
+                </motion.div>
 
                 {/* Actions */}
-                <div className="flex gap-3">
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex gap-4 pt-4"
+                >
                   <Button
                     type="button"
                     variant="outline"
                     onClick={onClose}
-                    className="flex-1"
+                    className="flex-1 h-14 text-lg"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="flex-1"
+                    className="flex-1 h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90"
                   >
                     {isLoading ? (
-                      <Loader2 size={16} className="animate-spin mr-2" />
+                      <Loader2 size={20} className="animate-spin mr-2" />
                     ) : null}
                     Save Changes
                   </Button>
-                </div>
+                </motion.div>
               </form>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
