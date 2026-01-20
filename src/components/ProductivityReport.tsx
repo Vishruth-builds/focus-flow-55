@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, Target, Clock, CheckCircle2, AlertTriangle, Sparkles, Trophy } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Target, Clock, CheckCircle2, AlertTriangle, Sparkles, Trophy } from 'lucide-react';
 import { ProductivityReport as Report, Task, PomodoroSession } from '@/types/pomodoro';
-import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO, subDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface ProductivityReportProps {
@@ -19,7 +19,6 @@ export function ProductivityReportModal({ isOpen, onClose, tasks, sessions, form
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
     
-    // Filter sessions and tasks for this week
     const weekSessions = sessions.filter(s => {
       const sessionDate = parseISO(s.date);
       return s.type === 'focus' && isWithinInterval(sessionDate, { start: weekStart, end: weekEnd });
@@ -30,18 +29,12 @@ export function ProductivityReportModal({ isOpen, onClose, tasks, sessions, form
       return isWithinInterval(taskDate, { start: weekStart, end: weekEnd });
     });
     
-    const tasksWithDeadlines = weekTasks.filter(t => t.deadline);
-    const completedOnTime = tasksWithDeadlines.filter(t => 
-      t.completed && t.deadline && new Date(t.createdAt) <= new Date(t.deadline)
-    ).length;
-    
     const totalFocusTime = weekSessions.reduce((acc, s) => acc + s.duration, 0);
     const sessionsCompleted = weekSessions.length;
     const tasksScheduled = weekTasks.length;
     const tasksCompleted = weekTasks.filter(t => t.completed).length;
     const completionRate = tasksScheduled > 0 ? (tasksCompleted / tasksScheduled) * 100 : 0;
     
-    // Generate feedback based on performance
     let feedback = '';
     let suggestions: string[] = [];
     
@@ -109,130 +102,136 @@ export function ProductivityReportModal({ isOpen, onClose, tasks, sessions, form
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-          />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-background"
+        >
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
           
-          {/* Modal */}
+          {/* Content */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-50 max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="relative h-full flex flex-col overflow-y-auto"
           >
-            <div className="glass-card p-6 rounded-2xl mx-4">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-primary/20">
-                    <Trophy size={24} className="text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-foreground">Weekly Report</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Week of {format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'MMM d')} - {format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'MMM d')}
-                    </p>
-                  </div>
+            {/* Header */}
+            <div className="flex items-center gap-4 p-6 border-b border-border sticky top-0 bg-background/80 backdrop-blur-lg z-10">
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <ArrowLeft size={24} />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent">
+                  <Trophy size={24} className="text-white" />
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-secondary transition-colors"
-                >
-                  <X size={20} />
-                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Weekly Report</h1>
+                  <p className="text-sm text-muted-foreground">
+                    Week of {format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'MMM d')} - {format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'MMM d')}
+                  </p>
+                </div>
               </div>
+            </div>
 
+            {/* Stats */}
+            <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-8">
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="p-4 rounded-xl bg-secondary/50"
+                  className="p-6 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50"
                 >
-                  <Clock size={20} className="text-primary mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{formatTime(report.totalFocusTime)}</p>
-                  <p className="text-xs text-muted-foreground">Total Focus Time</p>
+                  <Clock size={28} className="text-primary mb-3" />
+                  <p className="text-3xl font-bold text-foreground">{formatTime(report.totalFocusTime)}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Total Focus Time</p>
                 </motion.div>
                 
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="p-4 rounded-xl bg-secondary/50"
+                  className="p-6 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50"
                 >
-                  <Target size={20} className="text-success mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{report.sessionsCompleted}</p>
-                  <p className="text-xs text-muted-foreground">Sessions Completed</p>
+                  <Target size={28} className="text-success mb-3" />
+                  <p className="text-3xl font-bold text-foreground">{report.sessionsCompleted}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Sessions Completed</p>
                 </motion.div>
                 
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="p-4 rounded-xl bg-secondary/50"
+                  className="p-6 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50"
                 >
-                  <CheckCircle2 size={20} className="text-accent mb-2" />
-                  <p className="text-2xl font-bold text-foreground">
+                  <CheckCircle2 size={28} className="text-accent mb-3" />
+                  <p className="text-3xl font-bold text-foreground">
                     {report.tasksCompleted}/{report.tasksScheduled}
                   </p>
-                  <p className="text-xs text-muted-foreground">Tasks Completed</p>
+                  <p className="text-sm text-muted-foreground mt-1">Tasks Completed</p>
                 </motion.div>
                 
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="p-4 rounded-xl bg-secondary/50"
+                  className="p-6 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50"
                 >
-                  <TrendingUp size={20} className={cn("mb-2", getCompletionColor(report.completionRate))} />
-                  <p className={cn("text-2xl font-bold", getCompletionColor(report.completionRate))}>
+                  <TrendingUp size={28} className={cn("mb-3", getCompletionColor(report.completionRate))} />
+                  <p className={cn("text-3xl font-bold", getCompletionColor(report.completionRate))}>
                     {Math.round(report.completionRate)}%
                   </p>
-                  <p className="text-xs text-muted-foreground">Completion Rate</p>
+                  <p className="text-sm text-muted-foreground mt-1">Completion Rate</p>
                 </motion.div>
               </div>
 
               {/* Feedback */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 mb-6"
+                className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20"
               >
-                <div className="flex items-start gap-3">
-                  <Sparkles size={20} className="text-primary mt-0.5 shrink-0" />
-                  <p className="text-sm text-foreground leading-relaxed">{report.feedback}</p>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/20">
+                    <Sparkles size={24} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Your Weekly Summary</h3>
+                    <p className="text-foreground leading-relaxed">{report.feedback}</p>
+                  </div>
                 </div>
               </motion.div>
 
               {/* Suggestions */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
+                className="p-6 rounded-2xl bg-secondary/30 border border-border/50"
               >
-                <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                  <AlertTriangle size={14} className="text-amber-500" />
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <AlertTriangle size={20} className="text-amber-500" />
                   Tips for Next Week
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {report.suggestions.map((suggestion, index) => (
                     <motion.li
                       key={index}
-                      initial={{ opacity: 0, x: -10 }}
+                      initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + index * 0.05 }}
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                      className="flex items-start gap-3 text-foreground"
                     >
-                      <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent text-white text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">
                         {index + 1}
                       </span>
                       {suggestion}
@@ -242,7 +241,7 @@ export function ProductivityReportModal({ isOpen, onClose, tasks, sessions, form
               </motion.div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
