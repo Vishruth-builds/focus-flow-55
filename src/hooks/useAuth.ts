@@ -85,13 +85,41 @@ export function useAuth() {
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
+    console.log('Attempting Google sign in...');
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('Current origin:', window.location.origin);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        console.error('Error message:', error.message);
+        console.error('Error status:', error.status);
+      } else {
+        console.log('Google sign in initiated successfully:', data);
+        if (data?.url) {
+          console.log('Redirecting to:', data.url);
+        }
       }
-    });
-    return { error };
+      return { error, data };
+    } catch (err) {
+      console.error('Unexpected error during Google sign in:', err);
+      return { 
+        error: err instanceof Error ? err : new Error('Unknown error occurred'),
+        data: null 
+      };
+    }
   };
 
   const signOut = async () => {

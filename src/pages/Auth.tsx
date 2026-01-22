@@ -101,10 +101,40 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await signInWithGoogle();
+      const { error, data } = await signInWithGoogle();
       if (error) {
-        toast.error(error.message);
+        const errorMsg = error.message || JSON.stringify(error);
+        console.error('Full error object:', error);
+        
+        if (errorMsg.includes('provider is not enabled') || 
+            errorMsg.includes('Unsupported provider') ||
+            errorMsg.includes('validation_failed')) {
+          toast.error(
+            'Google sign-in is not enabled in Supabase. Please:\n1. Go to Supabase Dashboard → Authentication → Providers\n2. Find Google and toggle it ON\n3. Fill in Client ID and Secret\n4. Click Save and wait 1-2 minutes',
+            {
+              duration: 10000,
+            }
+          );
+        } else if (errorMsg.includes('redirect_uri_mismatch') || 
+                   errorMsg.includes('redirect_uri')) {
+          toast.error(
+            'Redirect URI mismatch. In Google Cloud Console:\nAdd this exact URL to Authorized redirect URIs:\nhttps://gvliedgajeriwydduzpr.supabase.co/auth/v1/callback',
+            {
+              duration: 10000,
+            }
+          );
+        } else {
+          toast.error(`Google sign-in error: ${errorMsg}`, {
+            duration: 8000,
+          });
+        }
+      } else if (data?.url) {
+        // OAuth flow initiated successfully, will redirect
+        console.log('Redirecting to Google OAuth...');
       }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast.error('An unexpected error occurred. Please check the console for details.');
     } finally {
       setLoading(false);
     }
