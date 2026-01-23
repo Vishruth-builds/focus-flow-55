@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface Profile {
   id: string;
@@ -85,9 +86,9 @@ export function useAuth() {
   };
 
   const signInWithGoogle = async () => {
-    console.log('Attempting Google sign in...');
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('Current origin:', window.location.origin);
+    logger.log('Attempting Google sign in...');
+    logger.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    logger.log('Current origin:', window.location.origin);
     
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -102,19 +103,19 @@ export function useAuth() {
       });
       
       if (error) {
-        console.error('Google sign in error:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
-        console.error('Error message:', error.message);
-        console.error('Error status:', error.status);
+        logger.error('Google sign in error:', error);
+        logger.error('Error details:', JSON.stringify(error, null, 2));
+        logger.error('Error message:', error.message);
+        logger.error('Error status:', error.status);
       } else {
-        console.log('Google sign in initiated successfully:', data);
+        logger.log('Google sign in initiated successfully:', data);
         if (data?.url) {
-          console.log('Redirecting to:', data.url);
+          logger.log('Redirecting to:', data.url);
         }
       }
       return { error, data };
     } catch (err) {
-      console.error('Unexpected error during Google sign in:', err);
+      logger.error('Unexpected error during Google sign in:', err);
       return { 
         error: err instanceof Error ? err : new Error('Unknown error occurred'),
         data: null 

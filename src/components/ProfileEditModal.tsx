@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Profile } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: Profile
       setAvatarUrl(urlData.publicUrl);
       toast.success('Avatar uploaded!');
     } catch (error: any) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       toast.error('Failed to upload avatar');
     } finally {
       setIsUploading(false);

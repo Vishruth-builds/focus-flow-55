@@ -11,6 +11,7 @@ import { useBackground } from '@/hooks/useBackground';
 import { BackgroundOverlay } from '@/components/BackgroundOverlay';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -104,7 +105,7 @@ export default function Auth() {
       const { error, data } = await signInWithGoogle();
       if (error) {
         const errorMsg = error.message || JSON.stringify(error);
-        console.error('Full error object:', error);
+        logger.error('Full error object:', error);
         
         if (errorMsg.includes('provider is not enabled') || 
             errorMsg.includes('Unsupported provider') ||
@@ -130,10 +131,10 @@ export default function Auth() {
         }
       } else if (data?.url) {
         // OAuth flow initiated successfully, will redirect
-        console.log('Redirecting to Google OAuth...');
+        logger.log('Redirecting to Google OAuth...');
       }
     } catch (err) {
-      console.error('Unexpected error:', err);
+      logger.error('Unexpected error:', err);
       toast.error('An unexpected error occurred. Please check the console for details.');
     } finally {
       setLoading(false);

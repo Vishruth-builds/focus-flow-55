@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, format } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 export type Tier = 'rookie' | 'amateur' | 'pro' | 'expert' | 'master';
 
@@ -67,7 +68,7 @@ export function useLeaderboard(userId?: string) {
       .order('total_focus_time', { ascending: false });
 
     if (error) {
-      console.error('Error fetching leaderboard:', error);
+      logger.error('Error fetching leaderboard:', error);
       setLoading(false);
       return;
     }
