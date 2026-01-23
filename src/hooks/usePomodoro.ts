@@ -37,12 +37,28 @@ export function usePomodoro() {
     storage.saveSessions(sessions);
   }, [sessions]);
 
+  // Track if we should reset time on settings change
+  const previousSettingsRef = useRef(settings);
+  const previousModeRef = useRef(mode);
+
   useEffect(() => {
     storage.saveSettings(settings);
-    if (!isRunning) {
+    
+    // Only reset timeLeft if settings actually changed (not just pausing)
+    const settingsChanged = 
+      previousSettingsRef.current.focusDuration !== settings.focusDuration ||
+      previousSettingsRef.current.breakDuration !== settings.breakDuration ||
+      previousSettingsRef.current.longBreakDuration !== settings.longBreakDuration;
+    
+    const modeChanged = previousModeRef.current !== mode;
+    
+    if ((settingsChanged || modeChanged) && !isRunning) {
       setTimeLeft(getDuration(mode));
     }
-  }, [settings, mode, isRunning, getDuration]);
+    
+    previousSettingsRef.current = settings;
+    previousModeRef.current = mode;
+  }, [settings, mode, getDuration, isRunning]);
 
   const playSound = useCallback(() => {
     if (settings.soundEnabled) {
